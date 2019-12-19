@@ -14,9 +14,10 @@ You will need to have the openhab scripter's helper libs installed: https://open
 
 Rather bumpy :)
 
-1. Copy some files to your Jython automation directories...
+1. Copy some files to your Jython automation and html directories...
 ** personal/* --> automation/lib/python/personal
 ** script/* --> automation/jsr223/python/personal
+** html/* --> html
 
 2. Change the configuration to suite you needs:
 ** automation/jsr223/python/personal/PaT3S_config.py
