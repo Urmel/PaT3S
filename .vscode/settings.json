@@ -1,0 +1,6 @@
+{
+    "python.linting.ignorePatterns": [
+        "**/core/**/*.py",
+        "**/community/**/*.py"
+    ]
+}
