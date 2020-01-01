@@ -1,14 +1,14 @@
-import personal.s2escheduler.configs
-from personal.s2escheduler.configs import getS2EConfig
-from personal.s2escheduler.blocks import S2EBlockType
+import personal.pat3s.configs
+from personal.pat3s.configs import getPaT3SConfig
+from personal.pat3s.blocks import PaT3SBlockType
 
-class s2e_oh_connector():
-  '''Class containing callbacks, etc to connect the S2E internal logic with open hab.'''
+class oh_connector():
+  '''Class containing callbacks, etc to connect the PaT3S internal logic with open hab.'''
 
-  def _addToScheduler(self, s2eb):
+  def _addToScheduler(self, pat3sb):
     pass
 
-  def schedulerCallback(self, s2eb, forStart):
+  def schedulerCallback(self, pat3sb, forStart):
     pass
 
   def setTargetValues(self, tgtValues):
@@ -17,7 +17,7 @@ class s2e_oh_connector():
   def writeOutControllingRules(self, currentRuleSuffix, controllingS2EMetaBlocks):
     pass
 
-  def _removeFromScheduler(self, s2eb):
+  def _removeFromScheduler(self, pat3sb):
     pass
 
   def outputCurrentRules(self):
@@ -33,14 +33,14 @@ print("*********** TESTS: General Setup ***********")
 
 # Common basic config
 # Be aware, that you need to change the concrete tests if you change something here!
-cfg = getS2EConfig()
+cfg = getPaT3SConfig()
 
 # Set dummy connector...
-cfg.getSchedMan().setSoc( s2e_oh_connector() )
+cfg.getSchedMan().setSoc( oh_connector() )
 
 
-HEAT_TYPE = S2EBlockType(  "HEAT",   "Heating"   )
-LIGHT_TYPE = S2EBlockType(  "LIGHT",  "Lighting"  )
+HEAT_TYPE = PaT3SBlockType(  "HEAT",   "Heating"   )
+LIGHT_TYPE = PaT3SBlockType(  "LIGHT",  "Lighting"  )
 
 HEAT_DEFAULT = 23.4
 LIGHT_DEFAULT = 12.3
@@ -48,9 +48,9 @@ LIGHT_DEFAULT = 12.3
 def resetConfig():
   cfg.getSchedMan().clearAllBlocks()
 
-  cfg._s2eBlockTypes.clear()
-  cfg.addS2EBlockType( HEAT_TYPE )
-  cfg.addS2EBlockType( LIGHT_TYPE )
+  cfg._pat3sBlockTypes.clear()
+  cfg.addPaT3SBlockType( HEAT_TYPE )
+  cfg.addPaT3SBlockType( LIGHT_TYPE )
 
   cfg._defaultValue = {
     "HEAT":   HEAT_DEFAULT,

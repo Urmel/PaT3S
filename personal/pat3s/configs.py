@@ -5,7 +5,7 @@ import sys
 import time
 import datetime
 
-from core.log import log_traceback
+#from core.log import log_traceback
 
 from personal.pat3s.blocks import PaT3SMetablock, PaT3SScheduleBlock, PaT3SBlockType
 from personal.pat3s.basics import logger
@@ -45,7 +45,8 @@ class ConfigSingleton():
   _writeOutActiveRules = True
 
   _defaultValue = {}
-  
+
+  _visuFileName = ""  
 
   def addPaT3SBlockType(self, pat3sbt):
     '''Adds a PaT3SBlockType instance to the configuration - if already existing, overwrite a previous one.'''
@@ -354,9 +355,11 @@ class SchedulerManager(object):
       self.evaluateOutputVal(datetime.datetime.now(), bt, bWriteOutControllingRules = getPaT3SConfig()._writeOutActiveRules)
 
 
-  @log_traceback
+  #@log_traceback
   def updateVisualization(self):
     '''Writes a JS file to a local (OH) dir which may serve as a basis for visualization'''
+    if (len(self._config._visuFileName) == 0):
+      return
     logger.debug("SchedulerManager.updateVisualization", "Updating data for visualization..." )
     listOfMetablocks = []
     outStr = """/* Generated JS file for visualization of PaT3S plans and history */
@@ -400,8 +403,7 @@ var ptData = {"""
 		]""".format(List = strList)
 
     # Finally write out the file...
-    fName = "/srv/openhab2-conf/html/Visualization/PaT3S_data.js"
-    f = open(fName, "w+t")
+    f = open( self._config._visuFileName , "w+t")
     f.write(outStr)
     f.close()
     logger.info("SchedulerManager.updateVisualization", "Data for visualization updated" )

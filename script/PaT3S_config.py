@@ -72,6 +72,9 @@ from personal.pat3s.basics import logger, sumTimes
 @log_traceback
 def activateHardCodedConfig():
     c = getPaT3SConfig()
+    
+    c._visuFileName = "/srv/openhab2-conf/html/Visualization/PaT3S_data.js"
+
     logger.warn("PaT3S_start.activateHardCodedConfig", "Hard-coded config is being activated.")
     logger.debug("PaT3S_start.activateHardCodedConfig", "General setup (cfg ID: %s)." % (  str(id(c))  )  )
     

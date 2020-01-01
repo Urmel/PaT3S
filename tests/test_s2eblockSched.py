@@ -1,14 +1,14 @@
 import pytest
 import datetime
-from personal.s2escheduler.schedules import S2EBlockSchedAbsolut, S2ECombinedDurationBlockSched, S2EAbsolutDurationBlockSched, S2EBlockSchedWeekTableAbsoluteDuration
+from personal.pat3s.schedules import PaT3SBlockSchedAbsolut, PaT3SCombinedDurationBlockSched, PaT3SAbsolutDurationBlockSched, PaT3SBlockSchedWeekTableAbsoluteDuration
 
-class Tests_S2EBlockSchedAbsolut:
+class Tests_PaT3SBlockSchedAbsolut:
 
   t0 = datetime.datetime.now()
   t0 = t0 + datetime.timedelta(seconds=-t0.second)
   t1 = t0 + datetime.timedelta( seconds=30 )
   t2 = t1 + datetime.timedelta( seconds=1 )
-  subject = S2EBlockSchedAbsolut(t1)
+  subject = PaT3SBlockSchedAbsolut(t1)
   
   def test_getCronExpression(self):
     assert self.subject.getCronExpression() == 'BLA'
@@ -25,17 +25,17 @@ class Tests_S2EBlockSchedAbsolut:
     assert self.subject.getSchedType() == 'absolut'
 
 
-class Tests_S2ECombinedDurationBlockSched:
+class Tests_PaT3SCombinedDurationBlockSched:
 
   t0 = datetime.datetime.now()
   t0 = t0 + datetime.timedelta(seconds=-t0.second)
-  start = S2EBlockSchedAbsolut(t0)
+  start = PaT3SBlockSchedAbsolut(t0)
 
   # Note: 2 test subjects!
-  subjectMin = S2ECombinedDurationBlockSched(start, 10)
+  subjectMin = PaT3SCombinedDurationBlockSched(start, 10)
 
   td = datetime.timedelta( seconds=30 )
-  subjectTD = S2ECombinedDurationBlockSched(start, td )
+  subjectTD = PaT3SCombinedDurationBlockSched(start, td )
   
 
   def test_getNextStart(self):
@@ -69,17 +69,17 @@ class Tests_S2ECombinedDurationBlockSched:
 
 
 
-class Tests_S2EAbsolutDurationBlockSched:
-  # same as Tests_S2EBlockSchedDuration but different constructor
+class Tests_PaT3SAbsolutDurationBlockSched:
+  # same as Tests_PaT3SBlockSchedDuration but different constructor
 
   t0 = datetime.datetime.now()
   t0 = t0 + datetime.timedelta(seconds=-t0.second)
 
   # Note: 2 test subjects!
-  subjectMin = S2EAbsolutDurationBlockSched(t0, 10)
+  subjectMin = PaT3SAbsolutDurationBlockSched(t0, 10)
 
   td = datetime.timedelta( seconds=30 )
-  subjectTD = S2EAbsolutDurationBlockSched(t0, td )
+  subjectTD = PaT3SAbsolutDurationBlockSched(t0, td )
   
 
   def test_getNextStart(self):
@@ -115,7 +115,7 @@ class Tests_S2EAbsolutDurationBlockSched:
 
 
 
-class Tests_S2EBlockSchedWeekTableAbsoluteDuration:
+class Tests_PaT3SBlockSchedWeekTableAbsoluteDuration:
 
   # An arbitrary Monday...
   m0 = datetime.date(2019, 10, 7)
@@ -148,7 +148,7 @@ class Tests_S2EBlockSchedWeekTableAbsoluteDuration:
     [ "7", datetime.time( 23, 30), 55 ],
   ]
 
-  subject = S2EBlockSchedWeekTableAbsoluteDuration(schedule)
+  subject = PaT3SBlockSchedWeekTableAbsoluteDuration(schedule)
 
   def _nextStartCall(self, dayOffset, hour, minute ):
     return self.subject.getNextStart( datetime.datetime.combine(  self.m0 + datetime.timedelta(days=dayOffset),  datetime.time( hour, minute )) )
