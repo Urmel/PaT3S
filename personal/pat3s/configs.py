@@ -112,7 +112,8 @@ class SchedulerManager(object):
       self.evaluateOutputVal(datetime.datetime.now(), bt, bWriteOutControllingRules = getPaT3SConfig()._writeOutActiveRules)
 
     # Add next PaT3SBlocks, triggers
-    for mb in self._metaBlocks:
+    for key in self._metaBlocks:
+      mb = self._metaBlocks[key]
       # First find end of last currently scheduled block...
       lastSB = datetime.datetime.now()
       for key in self._config._pat3sBlocks:

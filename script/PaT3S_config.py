@@ -56,7 +56,7 @@ from core.log import log_traceback
 # PaT3S Components
 #
 # pat3s_oh_connection connects to OH logging facility - set the logger in the PaT3S module (which otherwise prints to stdout)
-from personal.pat3s.pat3s_oh_connection import PaT3S_OH_Connector, PaT3SItemChangedTriggerExtension
+from personal.pat3s.pat3s_oh_connection import PaT3S_OH_Connector, PaT3SItemChangedTriggerExtension, PaT3SControllerHysteresis
 from personal.pat3s.configs import getPaT3SConfig, SchedulerManager
 from personal.pat3s.schedules import PaT3SBlockSchedWeekTableAbsoluteDuration, PaT3SFixedStartEndSchedule
 from personal.pat3s.blocks import PaT3SBlockType, PaT3SScheduleMetablock, PaT3SBlockModAbsolut, PaT3SEventBasedOpenEndedMetablock
@@ -82,13 +82,13 @@ def activateHardCodedConfig():
 
     c.WG_RT_GETUP_TOMORROW    =   time( 6, 0)
     c.WG_RT_GETUP_TOMORROW_WE =   time( 6,30)
-    c.WG_RT_GODNIGHT_TOMORROW =   time(18,30)
+    c.WG_RT_GODNIGHT_TOMORROW =   time(20,30)
 
     c.addPaT3SBlockType( c.HEAT_TYPE )
     c.addPaT3SBlockType( c.LIGHT_TYPE )
 
     c._defaultValue = {
-        "HEAT":   22.3,
+        "HEAT":   22.2,
         "LIGHT":  "OFF"
     }
 
@@ -124,26 +124,56 @@ def activateHardCodedConfig():
     schedule = PaT3SFixedStartEndSchedule( datetime.now() - timedelta(minutes=10), datetime.now() + timedelta(days=9999) )
     pat3s = PaT3SScheduleMetablock(
         pat3sbt       = c.HEAT_TYPE,
-        idstring    = "DefaultUpdate",
-        description = 'Einige Zimmer permanent kuehler halten',
+        idstring    = "Standardwerte",
+        description = 'Die Standardwerte für einige Zimmer anpassen',
         schedules   = [ schedule ],
         affectsAndModifies = [
-            ["_OG_KiZi",  PaT3SBlockModAbsolut(21.8)],
+            ["_OG_KiZi",  PaT3SBlockModAbsolut(22)],
             ["_OG_Elt",  PaT3SBlockModAbsolut(21)],
-            ["_UG_",  PaT3SBlockModAbsolut(20.5)],
-#            ["_OG_Bad_Fliesen",  PaT3SBlockModAbsolut(22.3)],
+            ["_UG_Keller",  PaT3SBlockModAbsolut(20)],
+            ["_UG_Flur",  PaT3SBlockModAbsolut(19.3)],
+            ["_OG_Bad_Fliesen",  PaT3SBlockModAbsolut(23.0)],
             ["_EG_KuecheFliesen",  PaT3SBlockModAbsolut(22.0)]
         ],
         priority    = 10 )
     c.getSchedMan().addPaT3SMetaBlock(pat3s)
 
 
+    schedule = PaT3SFixedStartEndSchedule( datetime.now() - timedelta(minutes=10), datetime(2019, 12,29, 9,0 ) )
+    pat3s = PaT3SScheduleMetablock(
+        pat3sbt       = c.HEAT_TYPE,
+        idstring    = "Abwesenheit",
+        description = 'In Abwesenheit die Temperatur pauschal reduzieren',
+        schedules   = [ schedule ],
+        affectsAndModifies = [
+            ["_OG_",  PaT3SBlockModAbsolut(18)],
+            ["_EG_",  PaT3SBlockModAbsolut(18)],
+            ["_UG_",  PaT3SBlockModAbsolut(17)]
+        ],
+        priority    = 1000 )
+    c.getSchedMan().addPaT3SMetaBlock(pat3s)
+
+
+    # Default fuer Kellergaeste
+    # schedule = PaT3SFixedStartEndSchedule( datetime.now() - timedelta(minutes=10), datetime.now() + timedelta(days=9999) )
+    # pat3s = PaT3SScheduleMetablock(
+    #     pat3sbt       = c.HEAT_TYPE,
+    #     idstring    = "StandardwerteGaesteKeller",
+    #     description = 'Die Standardwerte für Kellerzimmer anpassen',
+    #     schedules   = [ schedule ],
+    #     affectsAndModifies = [
+    #         ["UG_KellerSuedOst",  PaT3SBlockModAbsolut(20.5)]
+    #     ],
+    #     priority    = 11 )
+    # c.getSchedMan().addPaT3SMetaBlock(pat3s)
+
+
     # TODO: Setup should be relative to real GETUP-Time....
     schedule = [ ["12345",  sumTimes( c.WG_RT_GETUP_TOMORROW, minutes=-30 ), 50] ]  # Mo - Fr Morning for 50 Minutes
     pat3s = PaT3SScheduleMetablock(
         pat3sbt       = c.HEAT_TYPE,
-        idstring    = "VorhzBad",
-        description = 'OG Bad morgens vorheizen',
+        idstring    = "OGBadVorheizen",
+        description = 'Morgens vor der Nutzung vorheizen',
         schedules   = [ PaT3SBlockSchedWeekTableAbsoluteDuration(schedule) ],
         affectsAndModifies = [
         ["_OG_Bad_Radiator",  PaT3SBlockModAbsolut(23)],
@@ -160,8 +190,8 @@ def activateHardCodedConfig():
     schedule = [ ["1234567",  sumTimes( c.WG_RT_GODNIGHT_TOMORROW, minutes=-30 ), duration] ]  # Every day at night
     pat3s = PaT3SScheduleMetablock(
         pat3sbt       = c.HEAT_TYPE,
-        idstring    = "NachtAbs1",
-        description = 'Nachtabsenkung - alle Raeume kuehler machen',
+        idstring    = "Nachtabsenkung",
+        description = 'Alle Raeume über Nacht kuehler machen',
         schedules   = [ PaT3SBlockSchedWeekTableAbsoluteDuration(schedule) ],
         affectsAndModifies = [
         ["_EG_",  PaT3SBlockModAbsolut(20.5)],
@@ -174,29 +204,17 @@ def activateHardCodedConfig():
         priority    = 150 )
     c.getSchedMan().addPaT3SMetaBlock(pat3s)
 
-    # schedule = [ ["12345",  sumTimes( c.WG_RT_GETUP_TOMORROW, minutes=-120 ), 300] ]  # Mo - Fr Morning for 50 Minutes
-    # pat3s = PaT3SScheduleMetablock(
-    #     pat3sbt       = c.HEAT_TYPE,
-    #     idstring    = "NachtAbs2",
-    #     description = 'Nachtabsenkung 2 - Schlazis morgens kuehl lassen',
-    #     schedules   = [ PaT3SBlockSchedWeekTableAbsoluteDuration(schedule) ],
-    #     affectsAndModifies = [
-    #     ["_OG_Ki",  PaT3SBlockModAbsolut(20.8)],
-    #     ["_OG_Eltern",  PaT3SBlockModAbsolut(20.8)]
-    #     ],
-    #     priority    = 200 )
-    # c.getSchedMan().addPaT3SMetaBlock(pat3s)
 
-    # schedule = [ ["1234567",  sumTimes( datetime.now().time(), minutes=1 ), 1] ]  # Now+1 Mins for 1 Mins
+    # schedule = [ ["12345",  sumTimes( c.WG_RT_GODNIGHT_TOMORROW, minutes=-30 ), 180] ]
     # pat3s = PaT3SScheduleMetablock(
     #     pat3sbt       = c.HEAT_TYPE,
-    #     idstring    = "TestSchedule",
-    #     description = 'Schedule to test some stuff',
+    #     idstring    = "Weihnachtsabende",
+    #     description = 'Nachtabsenkung am Abend kompensieren',
     #     schedules   = [ PaT3SBlockSchedWeekTableAbsoluteDuration(schedule) ],
     #     affectsAndModifies = [
-    #     ["_UG_",  PaT3SBlockModAbsolut(17)]
+    #     ["_EG_Wohn",  PaT3SBlockModAbsolut(22.3)]
     #     ],
-    #     priority    = 9999 )
+    #     priority    = 150 )
     # c.getSchedMan().addPaT3SMetaBlock(pat3s)
 
 
@@ -204,24 +222,72 @@ def activateHardCodedConfig():
     # Windows...
     pat3sMBWindows = PaT3SEventBasedOpenEndedMetablock(
         pat3sbt       = c.HEAT_TYPE,
-        idstring    = 'WindowsLowerTemp',
-        description = 'Switch down temperature when windows / doors are open',
+        idstring    = 'FensterOffen',
+        description = 'Temperatur reduzieren aufgrund offener Fenster oder Türen',
         priority    = 1100 )
     c.getSchedMan().addPaT3SMetaBlock(pat3sMBWindows)
-    # Bath OG
-    trigger = PaT3SItemChangedTriggerExtension( pat3sMBWindows, "OG_Bad", PaT3SBlockModAbsolut(15), "SensorReed_OG_BadOG_Fenster", OPEN, CLOSED )
-    automationManager.addRule(trigger)
-    # Bath EG
-    trigger = PaT3SItemChangedTriggerExtension( pat3sMBWindows, "EG_Bad", PaT3SBlockModAbsolut(15), "SensorReed_EG_BadEG_Fenster", OPEN, CLOSED )
-    automationManager.addRule(trigger)
-    # Sleeping Parents
-    trigger = PaT3SItemChangedTriggerExtension( pat3sMBWindows, "OG_Eltern", PaT3SBlockModAbsolut(15), "SensorReed_OG_Eltern_Balkontuer", OPEN, CLOSED )
-    automationManager.addRule(trigger)
 
+    # OG
+    automationManager.addRule( PaT3SItemChangedTriggerExtension( pat3sMBWindows, "OG_Bad", PaT3SBlockModAbsolut(15), "SensorReed_OG_BadOG_Fenster", OPEN, CLOSED ) )
+    automationManager.addRule( PaT3SItemChangedTriggerExtension( pat3sMBWindows, "OG_Eltern", PaT3SBlockModAbsolut(15), "SensorReed_OG_Eltern_Balkontuer", OPEN, CLOSED ) )
+    automationManager.addRule( PaT3SItemChangedTriggerExtension( pat3sMBWindows, "OG_KiZiSued", PaT3SBlockModAbsolut(15), "SensorReed_OG_KiZiSued_Balkontuer", OPEN, CLOSED ) )
+    automationManager.addRule( PaT3SItemChangedTriggerExtension( pat3sMBWindows, "OG_KiZiWest", PaT3SBlockModAbsolut(15), "SensorReed_OG_KiZiWest_DFFLinks", OPEN, CLOSED ) )
+    automationManager.addRule( PaT3SItemChangedTriggerExtension( pat3sMBWindows, "OG_KiZiWest", PaT3SBlockModAbsolut(15), "SensorReed_OG_KiZiWest_DFFRechts", OPEN, CLOSED ) )
+    automationManager.addRule( PaT3SItemChangedTriggerExtension( pat3sMBWindows, "OG_KiZiNord", PaT3SBlockModAbsolut(15), "SensorReed_OG_KiZiNord_DFF", OPEN, CLOSED ) )
+    automationManager.addRule( PaT3SItemChangedTriggerExtension( pat3sMBWindows, "OG_KiZiNord", PaT3SBlockModAbsolut(15), "SensorReed_OG_KiZiNord_Fenster", OPEN, CLOSED ) )
+    # EG
+    automationManager.addRule( PaT3SItemChangedTriggerExtension( pat3sMBWindows, "EG_Bad", PaT3SBlockModAbsolut(15), "SensorReed_EG_BadEG_Fenster", OPEN, CLOSED ) )
+    automationManager.addRule( PaT3SItemChangedTriggerExtension( pat3sMBWindows, "EG_Arbeit", PaT3SBlockModAbsolut(15), "SensorReed_EG_Arbeitszimmer_TuerWest", OPEN, CLOSED ) )
+    automationManager.addRule( PaT3SItemChangedTriggerExtension( pat3sMBWindows, "EG_Arbeit", PaT3SBlockModAbsolut(15), "SensorReed_EG_Arbeitszimmer_FensterNord", OPEN, CLOSED ) )
+    automationManager.addRule( PaT3SItemChangedTriggerExtension( pat3sMBWindows, "EG_Diele", PaT3SBlockModAbsolut(15), "SensorReed_EG_DieleEG_Haustuer", OPEN, CLOSED ) )
+    automationManager.addRule( PaT3SItemChangedTriggerExtension( pat3sMBWindows, "EG_KuecheFliesen", PaT3SBlockModAbsolut(15), "SensorReed_EG_Kueche_Terassentuer", OPEN, CLOSED ) )
+    automationManager.addRule( PaT3SItemChangedTriggerExtension( pat3sMBWindows, "EG_Wohnzimmer", PaT3SBlockModAbsolut(15), "SensorReed_EG_Kueche_Terassentuer", OPEN, CLOSED ) )
+    automationManager.addRule( PaT3SItemChangedTriggerExtension( pat3sMBWindows, "EG_Wohnzimmer", PaT3SBlockModAbsolut(15), "SensorReed_EG_WZ_Sued", OPEN, CLOSED ) )
+    automationManager.addRule( PaT3SItemChangedTriggerExtension( pat3sMBWindows, "EG_Wohnzimmer", PaT3SBlockModAbsolut(15), "SensorReed_EG_WZ_West", OPEN, CLOSED ) )
+    # UG
+    automationManager.addRule( PaT3SItemChangedTriggerExtension( pat3sMBWindows, "UG_KellerSuedWest", PaT3SBlockModAbsolut(15), "SensorReed_UG_KellerSued_West_Fenster", OPEN, CLOSED ) )
+    automationManager.addRule( PaT3SItemChangedTriggerExtension( pat3sMBWindows, "UG_KellerSuedOst", PaT3SBlockModAbsolut(15), "SensorReed_UG_KellerSued_Ost_Fenster", OPEN, CLOSED ) )
+    automationManager.addRule( PaT3SItemChangedTriggerExtension( pat3sMBWindows, "UG_Flur", PaT3SBlockModAbsolut(15), "SensorReed_UG_Schleuse_Aussentuer", OPEN, CLOSED ) )
+
+
+    ###############
+    # Controller
+    ctrl = PaT3SControllerHysteresis( 0.15, 0.15 )
+    ctrl.addControlledTouple( "Zieltemp_EG_Arbeitszimmer", "SensorTemp_EG_Arbeitszimmer_Zimmertuer", "Heizung_EG_Arbeitszimmer_Decke" )
+    ctrl.addControlledTouple( "Zieltemp_EG_Wohnzimmer", "SensorTemp_EG_WZ_Glastuer", "Heizung_EG_WZ_Decke" )
+    ctrl.addControlledTouple( "Zieltemp_EG_Diele", "SensorTemp_EG_DieleEG_Fliesen", "Heizung_EG_DieleEG_Fliesen" )
+    ctrl.addControlledTouple( "Zieltemp_EG_Bad", "SensorTemp_EG_BadEG_Zimmertuer", "Heizung_EG_BadEG_Decke" )
+    ctrl.addControlledTouple( "Zieltemp_EG_KuecheFliesen", "SensorTemp_EG_Kueche_Fliesen", "Heizung_EG_Kueche_Fliesen" )
+    ctrl.addControlledTouple( "Zieltemp_UG_KellerSuedWest", "SensorTemp_UG_KellerSued_West_Zimmertuer", "Heizung_UG_KellerSued_West_Decke" )
+    ctrl.addControlledTouple( "Zieltemp_UG_KellerSuedOst", "SensorTemp_UG_KellerSued_Ost_Zimmertuer", "Heizung_UG_KellerSued_Ost_Decke" )
+    ctrl.addControlledTouple( "Zieltemp_UG_Flur", "SensorTemp_UG_Flur_Schleusentuer", "Heizung_UG_Flur_Decke" )
+    ctrl.addControlledTouple( "Zieltemp_OG_Bad_Radiator", "SensorTemp_OG_BadOG_Zimmertuer", "Heizung_OG_BadOG_Radiator" )
+    ctrl.addControlledTouple( "Zieltemp_OG_Bad_Fliesen", "SensorTemp_OG_BadOG_Fliesen", "Heizung_OG_BadOG_Fliesen" )
+    ctrl.addControlledTouple( "Zieltemp_OG_KiZiWest", "SensorTemp_OG_KiZiWest_Zimmertuer", "Heizung_OG_KiZiWest_Decke" )
+    ctrl.addControlledTouple( "Zieltemp_OG_KiZiNord", "SensorTemp_OG_KiZiNord_Zimmertuer", "Heizung_OG_KiZiNord_Decke" )
+    ctrl.addControlledTouple( "Zieltemp_OG_KiZiSued", "SensorTemp_OG_KiZiSued_Zimmertuer", "Heizung_OG_KiZiSued_Decke" )
+    ctrl.addControlledTouple( "Zieltemp_OG_Eltern", "SensorTemp_OG_Eltern_Zimmertuer", "Heizung_OG_Eltern_Decke" )
+    ctrl.activateController()
+
+
+    ###############
+    # Finish
+    getPaT3SConfig().getSchedMan().outputCurrentSchedule()
+    getPaT3SConfig().getSchedMan().periodicEvaluation()
+    ctrl.fullEvaluation()
+    getPaT3SConfig().ctrl = ctrl
     logger.debug("PaT3S_start.activateHardCodedConfig", "Activation finished.")
 
-    getPaT3SConfig().getSchedMan().outputCurrentSchedule()
 
 
 # do this via method to easily support log_traceback
 activateHardCodedConfig()
+
+
+
+# Workaround
+@rule("Debug: Frequent Controller eval", description="Do Eval.", tags=["PaT3S"])
+@when("Time cron 0 0/10 * * * ?")
+def executePaT3SDebugTriggerController(event):
+    logger.debug("PaT3SDebugTriggerController.execute", "Rule called.")
+    getPaT3SConfig().ctrl.fullEvaluation()

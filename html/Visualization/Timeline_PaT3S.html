@@ -8,7 +8,7 @@
 		<meta http-equiv="X-UA-Compatible" content="IE=Edge">
 		<meta http-equiv="refresh" CONTENT="60">
 
-    <link rel="stylesheet" type="text/css" href="../css/visualizationStyle.css">
+    <link rel="stylesheet" type="text/css" href="../css/visualizationStylePaT3S.css">
 
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
@@ -173,11 +173,12 @@
                 chartData = addItemToChart(itemName, hours, chartData);
             });
 			
-			var xAxisFormat = "HH:mm";
-            if (hours > 24) {
-				var xAxisFormat = "EEE, HH:mm";
-			}
-            var chartOptions = {
+						var xAxisFormat = "HH:mm";
+						if (hours > 24) {
+								var xAxisFormat = "EEE, HH:mm";
+						}
+
+						var chartOptions = {
                 height : window.innerHeight,
                 /* A theme is a set of predefined option values that work together to achieve 
                  * a specific chart behavior or visual effect. Currently only one theme is available:
@@ -188,12 +189,17 @@
                 hAxis: {
                     textPosition: 'in',
                     format: xAxisFormat,
-					minValue: cutOffMin,
-					maxValue: cutOffMax
+										minValue: cutOffMin,
+										maxValue: cutOffMax,
+										textStyle: { color: '#CCCCCC' }		/* does not work for timeline charts!!! */
                 },
-				tooltip: {
-					isHtml: true
-				}
+								tooltip: {
+										isHtml: true
+								},
+								timeline: {
+										rowLabelStyle: { color: '#CCCCCC' }
+								},
+								backgroundColor: '#555555'
             }
 
             chart.draw(chartData, chartOptions);

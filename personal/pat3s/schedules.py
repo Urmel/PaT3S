@@ -77,6 +77,9 @@ class PaT3SCombinedBlockSchedule(PaT3SFullBlockSchedule):
     if (preExec == None):
       return None
     endVal = self._endSchedule.getNextExecution(startingPoint)
+    if (endVal == None):
+      # No planned execution
+      return None
     if (startingPoint >= endVal):
       return None
     return [ "*", preExec, endVal ]
