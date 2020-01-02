@@ -2,8 +2,7 @@
 Module with basic functions used in all modules or just very generic.
 '''
 
-import time
-import datetime
+from datetime import datetime, timedelta, time
 
 
 def sumTimes( dtTime, hours = 0, minutes = 0, seconds = 0 ):
@@ -12,8 +11,27 @@ def sumTimes( dtTime, hours = 0, minutes = 0, seconds = 0 ):
   If dtTime is None, None is returned.'''
   if (dtTime == None):
     return None
-  dtOne = datetime.datetime.combine( datetime.datetime.today(), dtTime )
-  return (dtOne + datetime.timedelta(hours= hours, minutes=minutes, seconds=seconds)).time()
+  dtOne = datetime.combine( datetime.today(), dtTime )
+  return (dtOne + timedelta(hours= hours, minutes=minutes, seconds=seconds)).time()
+
+
+
+def calcDuration( timeStart, timeEnd ):
+  '''Calculates a duration in minutes between two ``datetime.time`` values. If timeEnd < timeStart, a day change is
+  assumed. If either argument is ``None``, None is returned.'''
+  if ( (timeStart == None) or (timeEnd == None) ):
+    return None
+  
+  dtStart = datetime.combine( datetime.today(), timeStart )
+  dtEnd = datetime.combine( datetime.today(), timeEnd )
+  if (dtStart > dtEnd):
+    dtEnd = dtEnd + timedelta(days=1)
+
+  delta = dtEnd - dtStart
+  duration = delta.total_seconds()/60
+  return duration
+
+
 
 
 class loggerClass(object):

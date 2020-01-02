@@ -60,7 +60,7 @@ from personal.pat3s.pat3s_oh_connection import PaT3S_OH_Connector, PaT3SItemChan
 from personal.pat3s.configs import getPaT3SConfig, SchedulerManager
 from personal.pat3s.schedules import PaT3SBlockSchedWeekTableAbsoluteDuration, PaT3SFixedStartEndSchedule
 from personal.pat3s.blocks import PaT3SBlockType, PaT3SScheduleMetablock, PaT3SBlockModAbsolut, PaT3SEventBasedOpenEndedMetablock
-from personal.pat3s.basics import logger, sumTimes
+from personal.pat3s.basics import logger, sumTimes, calcDuration
 
 
 
@@ -186,11 +186,10 @@ def activateHardCodedConfig():
     c.getSchedMan().addPaT3SMetaBlock(pat3s)
 
 
-    dtStart = datetime.combine( datetime.today(), c.WG_RT_GODNIGHT_TOMORROW ) + timedelta(minutes=-30)
-    dtEnd = datetime.combine( datetime.today(), c.WG_RT_GETUP_TOMORROW ) + timedelta(minutes=-45)
-    delta = dtStart - dtEnd     # To avoid calc over midnight
-    duration = 24*60 - delta.total_seconds()/60
-    schedule = [ ["1234567",  sumTimes( c.WG_RT_GODNIGHT_TOMORROW, minutes=-30 ), duration] ]  # Every day at night
+    tStart  = sumTimes( c.WG_RT_GODNIGHT_TOMORROW, minutes=-30 )
+    tEnd    = sumTimes( c.WG_RT_GETUP_TOMORROW, minutes=-45 )
+    duration = calcDuration( tStart, tEnd )
+    schedule = [ ["1234567",  tStart, duration] ]  # Every day at night
     pat3s = PaT3SScheduleMetablock(
         pat3sbt       = c.HEAT_TYPE,
         idstring    = "Nachtabsenkung",
